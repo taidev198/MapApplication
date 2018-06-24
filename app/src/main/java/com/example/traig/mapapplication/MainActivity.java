@@ -37,6 +37,7 @@ public class MainActivity extends FragmentActivity implements
      */
     private boolean mLocationPermissionGranted = false;
     private boolean mLastLocationPermissionGranted = false;
+    private static final int DEFAULT_ZOOM = 17;
     /**
      * Created location services client
      * */
@@ -79,7 +80,6 @@ public class MainActivity extends FragmentActivity implements
             ActivityCompat.requestPermissions(this, permission, LAST_LOCATION_PERMISSION_REQUEST_CODE);
 
         }else if (mMap != null){
-            Toast.makeText(getApplicationContext(), "MyLocation button clicked", Toast.LENGTH_SHORT).show();
             mFusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                         @Override
@@ -88,10 +88,13 @@ public class MainActivity extends FragmentActivity implements
                             if (location != null) {
                                 // Logic to handle location object
                                 LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
-                                mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-                                mMap.addMarker(new MarkerOptions().position(sydney)
-                                        .title("Thái Lai Quê Tao =))"));
-                                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+//                                mMap.addMarker(new MarkerOptions().position(sydney)
+//                                        .title("Thái Lai Quê Tao =))"));
+//                                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(location.getLatitude(),
+                                                location.getLongitude()), DEFAULT_ZOOM));
 
                             }
                         }
