@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">MapApplication</string>
     <string name="api_key">AIzaSyCWbKCIzootn6jf2gZXtIPgc-1p2BuS-x4</string>
+    <string name="search">Search ...</string>
 </resources>
