@@ -1,17 +1,32 @@
 package com.example.traig.mapapplication;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -19,6 +34,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+
+import java.io.IOException;
+import java.util.List;
+
+import butterknife.BindView;
 
 public class MainActivity extends FragmentActivity implements
         GoogleMap.OnMyLocationButtonClickListener,
@@ -31,6 +51,8 @@ public class MainActivity extends FragmentActivity implements
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int LAST_LOCATION_PERMISSION_REQUEST_CODE = 2;
     private GoogleMap mMap;
+    private Location mCurrentLocation;//save current location
+    private LocationRequest mLocationRequest;
     /**
      * Flag indicating whether a requested permission has been denied after returning in
      * {@link #onRequestPermissionsResult(int, String[], int[])}.
@@ -43,6 +65,11 @@ public class MainActivity extends FragmentActivity implements
      * */
     private FusedLocationProviderClient mFusedLocationClient;
     private static final String TAG = "log:";
+    private Button button;
+    EditText editText;
+    private boolean mRequestingLocationUpdates;
+    private LocationCallback mLocationCallback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +82,42 @@ public class MainActivity extends FragmentActivity implements
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
 
+        editText = findViewById(R.id.search);
+        button = findViewById(R.id.btn_search2);
+
+    }
+
+    @SuppressLint("RestrictedApi")
+    protected void createLocationRequest() {
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(10000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+
+    }
+
+    private void geoLocate() {
+
+
+        String search = editText.getText().toString();
+
+        Geocoder geocoder = new Geocoder(MainActivity.this);
+
+        List<Address> addresses = null;
+
+        try {
+            addresses = geocoder.getFromLocationName(search, 1);
+            mMap.addMarker(new MarkerOptions().position(new LatLng(addresses.get(0).getLatitude(), addresses.get(0).getLongitude())));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(addresses.get(0).getLatitude(),
+                            addresses.get(0).getLongitude()), 15));
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void enableMyLocation() {
@@ -70,7 +133,7 @@ public class MainActivity extends FragmentActivity implements
 
     }
 
-    private void getLastLocation(){
+    private void getLastLocation() {
         String[] permission = {Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION};
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -79,13 +142,15 @@ public class MainActivity extends FragmentActivity implements
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, permission, LAST_LOCATION_PERMISSION_REQUEST_CODE);
 
-        }else if (mMap != null){
+        } else if (mMap != null) {
             mFusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                         @Override
                         public void onSuccess(Location location) {
                             // Got last known location. In some rare situations this can be null.
                             if (location != null) {
+                                mCurrentLocation = location;
+
                                 // Logic to handle location object
                                 LatLng sydney = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -117,7 +182,7 @@ public class MainActivity extends FragmentActivity implements
                     }
                     mLocationPermissionGranted = true;
                 }
-            break;
+                break;
             case LAST_LOCATION_PERMISSION_REQUEST_CODE:
                 Log.d(TAG, "onRequestPermissionsResult: ");
                 if (grantResults.length > 0) {
@@ -154,11 +219,18 @@ public class MainActivity extends FragmentActivity implements
         enableMyLocation();
         getLastLocation();
 
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                geoLocate();
+            }
+        });
+
     }
 
     @Override
     public void onMapClick(LatLng latLng) {
-        Toast.makeText(this,"lat:" + latLng,Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "lat:" + latLng, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -173,4 +245,31 @@ public class MainActivity extends FragmentActivity implements
     public void onMyLocationClick(@NonNull Location location) {
         Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }else {
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                    mLocationCallback,
+                    null /* Looper */);
+        }
+
+    }
+
 }
