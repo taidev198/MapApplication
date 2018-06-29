@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.traig.mapapplication.R;
@@ -115,6 +116,20 @@ public class MainActivity extends FragmentActivity implements
         button = findViewById(R.id.btn_search2);
         mPlaceAutocompleteAdapter = new PlaceAutocompleteAdapter(this,Places.getGeoDataClient(this, null),LAT_LNG_BOUNDS,null);
         editText.setAdapter(mPlaceAutocompleteAdapter);
+
+        View mapView = mapFragment.getView();
+        if (mapView != null &&
+                mapView.findViewById(1) != null) {
+            // Get the button view
+            View locationButton = ((View) mapView.findViewById(1).getParent()).findViewById(2);
+            // and next place it, on bottom right (as Google Maps app)
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                    locationButton.getLayoutParams();
+            // position on right bottom
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.setMargins(0, 0, 30, 300);
+        }
 
     }
 
@@ -256,8 +271,6 @@ public class MainActivity extends FragmentActivity implements
         // Add a marker in Sydney, Australia,
         // and move the map's camera to the same location.
 
-
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         googleMap.getUiSettings().setCompassEnabled(true);
@@ -300,7 +313,7 @@ public class MainActivity extends FragmentActivity implements
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false;
