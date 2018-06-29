@@ -3,6 +3,9 @@ package com.example.traig.mapapplication;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -26,8 +29,11 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -190,6 +196,10 @@ public class MainActivity extends FragmentActivity implements
 //                                mMap.addMarker(new MarkerOptions().position(sydney)
 //                                        .title("Thái Lai Quê Tao =))"));
 //                                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+                                Drawable circleDrawable = getResources().getDrawable(R.drawable.car);
+                                BitmapDescriptor markerIcon = getMarkerIconFromDrawable(circleDrawable);
+                                mMap.addMarker(new MarkerOptions().position(sydney).icon(markerIcon)
+                                .anchor(0.5f, 0.5f));
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(location.getLatitude(),
                                                 location.getLongitude()), DEFAULT_ZOOM));
@@ -199,6 +209,15 @@ public class MainActivity extends FragmentActivity implements
                     });
         }
 
+    }
+
+    private BitmapDescriptor getMarkerIconFromDrawable(Drawable drawable) {
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     @Override
@@ -243,6 +262,17 @@ public class MainActivity extends FragmentActivity implements
         googleMap.getUiSettings().setScrollGesturesEnabled(true);
         googleMap.getUiSettings().setTiltGesturesEnabled(true);
         googleMap.getUiSettings().setRotateGesturesEnabled(true);
+        googleMap.setLocationSource(new LocationSource() {
+            @Override
+            public void activate(OnLocationChangedListener onLocationChangedListener) {
+
+            }
+
+            @Override
+            public void deactivate() {
+
+            }
+        });
         googleMap.setOnMapClickListener(this);
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap = googleMap;
