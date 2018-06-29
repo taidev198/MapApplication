@@ -1,4 +1,4 @@
-package com.example.traig.mapapplication;
+package com.example.traig.mapapplication.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -19,6 +19,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.traig.mapapplication.R;
+import com.example.traig.mapapplication.adapter.PlaceAutocompleteAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
