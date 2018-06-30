@@ -29,7 +29,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -48,6 +47,8 @@ public class MainActivity extends FragmentActivity implements
         OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.OnConnectionFailedListener {
+
+
 
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -77,6 +78,16 @@ public class MainActivity extends FragmentActivity implements
     private GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
 
+
+    //level zoom
+    private static final int WORLD = 1;
+    private static final int LANMASS = 5;
+    private static final int CITY = 10;
+    private static final int TREETS = 15;
+    private static final int BUILDING = 20;
+
+    Button locationBtn;
+    @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,7 +98,13 @@ public class MainActivity extends FragmentActivity implements
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
+        locationBtn = findViewById(R.id.location_search);
+        locationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLastLocation();
+            }
+        });
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         View mapView = mapFragment.getView();
         if (mapView != null &&
@@ -118,7 +135,7 @@ public class MainActivity extends FragmentActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        stopLocationUpdates();
+       // stopLocationUpdates();
     }
 
     private void stopLocationUpdates() {
@@ -166,8 +183,8 @@ public class MainActivity extends FragmentActivity implements
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, permission, LOCATION_PERMISSION_REQUEST_CODE);
-        } else if (mMap != null)
-            mMap.setMyLocationEnabled(true);
+        } //else if (mMap != null)
+           // mMap.setMyLocationEnabled(false);
 
     }
 
@@ -199,10 +216,10 @@ public class MainActivity extends FragmentActivity implements
                                 BitmapDescriptor markerIcon = getMarkerIconFromDrawable(circleDrawable);
                                 mMap.addMarker(new MarkerOptions().position(sydney).icon(markerIcon)
                                 .anchor(0.5f, 0.5f));
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(location.getLatitude(),
                                                 location.getLongitude()), DEFAULT_ZOOM));
-
                             }
                         }
                     });
@@ -253,7 +270,7 @@ public class MainActivity extends FragmentActivity implements
         // Add a marker in Sydney, Australia,
         // and move the map's camera to the same location.
 
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+
 
         googleMap.getUiSettings().setCompassEnabled(true);
         googleMap.getUiSettings().setScrollGesturesEnabled(true);
@@ -267,7 +284,6 @@ public class MainActivity extends FragmentActivity implements
         mMap.setOnMyLocationClickListener(this);
 
         enableMyLocation();
-        getLastLocation();
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
