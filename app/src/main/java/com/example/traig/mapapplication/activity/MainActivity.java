@@ -1,4 +1,4 @@
-package com.example.traig.mapapplication;
+package com.example.traig.mapapplication.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.example.traig.mapapplication.R;
+import com.example.traig.mapapplication.adapter.PlaceAutocompleteAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -29,7 +31,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -43,8 +44,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity implements
-        GoogleMap.OnMyLocationButtonClickListener,
-        GoogleMap.OnMyLocationClickListener,
         OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.OnConnectionFailedListener {
@@ -76,13 +75,21 @@ public class MainActivity extends FragmentActivity implements
     private LocationCallback mLocationCallback;
     private GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
+    Button currentLocation;
 
+    @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        currentLocation = findViewById(R.id.location_search);
+        currentLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLastLocation();
+            }
+        });
 
         MapFragment mapFragment = (MapFragment) getFragmentManager()
                 .findFragmentById(R.id.map);
@@ -93,7 +100,7 @@ public class MainActivity extends FragmentActivity implements
         if (mapView != null &&
                 mapView.findViewById(1) != null) {
             // Get the button view
-            View locationButton = ((View) mapView.findViewById(1).getParent()).findViewById(2);
+             View locationButton = ((View) mapView.findViewById(1).getParent()).findViewById(2);
             // and next place it, on bottom right (as Google Maps app)
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
                     locationButton.getLayoutParams();
@@ -250,10 +257,7 @@ public class MainActivity extends FragmentActivity implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Add a marker in Sydney, Australia,
         // and move the map's camera to the same location.
-
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         googleMap.getUiSettings().setCompassEnabled(true);
         googleMap.getUiSettings().setScrollGesturesEnabled(true);
@@ -263,10 +267,8 @@ public class MainActivity extends FragmentActivity implements
         googleMap.setOnMapClickListener(this);
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap = googleMap;
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
 
-        enableMyLocation();
+      //  enableMyLocation();
         getLastLocation();
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -283,18 +285,6 @@ public class MainActivity extends FragmentActivity implements
         Toast.makeText(this, "lat:" + latLng, Toast.LENGTH_LONG).show();
     }
 
-    @Override
-    public boolean onMyLocationButtonClick() {
-        getLastLocation();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        return false;
-    }
-
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
-    }
 
     @Override
     protected void onResume() {
