@@ -125,7 +125,7 @@ public class MainActivity extends FragmentActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        stopLocationUpdates();
+      //  stopLocationUpdates();
     }
 
     private void stopLocationUpdates() {
@@ -165,18 +165,6 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
-    private void enableMyLocation() {
-        String[] permission = {Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION};
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, permission, LOCATION_PERMISSION_REQUEST_CODE);
-        } else if (mMap != null)
-            mMap.setMyLocationEnabled(true);
-
-    }
 
     private void getLastLocation() {
         String[] permission = {Manifest.permission.ACCESS_FINE_LOCATION,
@@ -206,7 +194,7 @@ public class MainActivity extends FragmentActivity implements
                                 BitmapDescriptor markerIcon = getMarkerIconFromDrawable(circleDrawable);
                                 mMap.addMarker(new MarkerOptions().position(sydney).icon(markerIcon)
                                 .anchor(0.5f, 0.5f));
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(location.getLatitude(),
                                                 location.getLongitude()), DEFAULT_ZOOM));
 
@@ -268,7 +256,6 @@ public class MainActivity extends FragmentActivity implements
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap = googleMap;
 
-      //  enableMyLocation();
         getLastLocation();
 
         button.setOnClickListener(new View.OnClickListener() {
