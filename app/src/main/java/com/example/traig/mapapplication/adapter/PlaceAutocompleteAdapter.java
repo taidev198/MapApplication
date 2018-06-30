@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.example.traig.mapapplication;
+package com.example.traig.mapapplication.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

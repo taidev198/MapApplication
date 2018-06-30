@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -25,6 +24,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -89,19 +89,20 @@ public class MainActivity extends FragmentActivity implements
         mapFragment.getMapAsync(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        View mapView = mapFragment.getView();
-        if (mapView != null &&
-                mapView.findViewById(1) != null) {
-            // Get the button view
-            View locationButton = ((View) mapView.findViewById(1).getParent()).findViewById(2);
-            // and next place it, on bottom right (as Google Maps app)
-            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
-                    locationButton.getLayoutParams();
-            // position on right bottom
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
-            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0, 0, 30, 300);
-        }
+        mLocationCallback = new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    // Update UI with location data
+                    // ...
+                    Log.d(TAG, "onLocationResult: "+ location.getLatitude());
+                }
+            }
+        };
+
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
@@ -253,13 +254,25 @@ public class MainActivity extends FragmentActivity implements
         // Add a marker in Sydney, Australia,
         // and move the map's camera to the same location.
 
+
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         googleMap.getUiSettings().setCompassEnabled(true);
         googleMap.getUiSettings().setScrollGesturesEnabled(true);
         googleMap.getUiSettings().setTiltGesturesEnabled(true);
         googleMap.getUiSettings().setRotateGesturesEnabled(true);
+        googleMap.setLocationSource(new LocationSource() {
+            @Override
+            public void activate(OnLocationChangedListener onLocationChangedListener) {
 
+            }
+
+            @Override
+            public void deactivate() {
+
+            }
+        });
         googleMap.setOnMapClickListener(this);
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap = googleMap;
@@ -285,7 +298,7 @@ public class MainActivity extends FragmentActivity implements
 
     @Override
     public boolean onMyLocationButtonClick() {
-        getLastLocation();
+        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false;
