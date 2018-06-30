@@ -1,4 +1,4 @@
-package com.example.traig.mapapplication;
+package com.example.traig.mapapplication.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.example.traig.mapapplication.R;
+import com.example.traig.mapapplication.adapter.PlaceAutocompleteAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -42,13 +44,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity implements
-        GoogleMap.OnMyLocationButtonClickListener,
-        GoogleMap.OnMyLocationClickListener,
         OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
         ActivityCompat.OnRequestPermissionsResultCallback, GoogleApiClient.OnConnectionFailedListener {
-
-
 
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -77,40 +75,32 @@ public class MainActivity extends FragmentActivity implements
     private LocationCallback mLocationCallback;
     private GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mPlaceAutocompleteAdapter;
+    Button currentLocation;
 
-
-    //level zoom
-    private static final int WORLD = 1;
-    private static final int LANMASS = 5;
-    private static final int CITY = 10;
-    private static final int TREETS = 15;
-    private static final int BUILDING = 20;
-
-    Button locationBtn;
     @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        locationBtn = findViewById(R.id.location_search);
-        locationBtn.setOnClickListener(new View.OnClickListener() {
+        currentLocation = findViewById(R.id.location_search);
+        currentLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getLastLocation();
             }
         });
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         View mapView = mapFragment.getView();
         if (mapView != null &&
                 mapView.findViewById(1) != null) {
             // Get the button view
-            View locationButton = ((View) mapView.findViewById(1).getParent()).findViewById(2);
+             View locationButton = ((View) mapView.findViewById(1).getParent()).findViewById(2);
             // and next place it, on bottom right (as Google Maps app)
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
                     locationButton.getLayoutParams();
@@ -135,7 +125,7 @@ public class MainActivity extends FragmentActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-       // stopLocationUpdates();
+        stopLocationUpdates();
     }
 
     private void stopLocationUpdates() {
@@ -183,8 +173,8 @@ public class MainActivity extends FragmentActivity implements
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, permission, LOCATION_PERMISSION_REQUEST_CODE);
-        } //else if (mMap != null)
-           // mMap.setMyLocationEnabled(false);
+        } else if (mMap != null)
+            mMap.setMyLocationEnabled(true);
 
     }
 
@@ -216,10 +206,10 @@ public class MainActivity extends FragmentActivity implements
                                 BitmapDescriptor markerIcon = getMarkerIconFromDrawable(circleDrawable);
                                 mMap.addMarker(new MarkerOptions().position(sydney).icon(markerIcon)
                                 .anchor(0.5f, 0.5f));
-
-                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(location.getLatitude(),
                                                 location.getLongitude()), DEFAULT_ZOOM));
+
                             }
                         }
                     });
@@ -267,10 +257,7 @@ public class MainActivity extends FragmentActivity implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Add a marker in Sydney, Australia,
         // and move the map's camera to the same location.
-
-
 
         googleMap.getUiSettings().setCompassEnabled(true);
         googleMap.getUiSettings().setScrollGesturesEnabled(true);
@@ -280,10 +267,9 @@ public class MainActivity extends FragmentActivity implements
         googleMap.setOnMapClickListener(this);
         googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap = googleMap;
-        mMap.setOnMyLocationButtonClickListener(this);
-        mMap.setOnMyLocationClickListener(this);
 
-        enableMyLocation();
+      //  enableMyLocation();
+        getLastLocation();
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -299,18 +285,6 @@ public class MainActivity extends FragmentActivity implements
         Toast.makeText(this, "lat:" + latLng, Toast.LENGTH_LONG).show();
     }
 
-    @Override
-    public boolean onMyLocationButtonClick() {
-        getLastLocation();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        return false;
-    }
-
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
-    }
 
     @Override
     protected void onResume() {
