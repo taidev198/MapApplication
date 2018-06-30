@@ -1,4 +1,4 @@
-package com.example.traig.mapapplication;
+package com.example.traig.mapapplication.activity;
 
 import android.support.v7.app.AppCompatActivity;
 
